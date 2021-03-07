@@ -27,6 +27,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install tox
+    - name: Add AWS credentials
+      run: |
+        touch ~/.aws/credentials
     - name: Test with pytest
       run: |
         tox -e ${{ matrix.tox_env }}
