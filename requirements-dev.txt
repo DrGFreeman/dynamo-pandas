@@ -1,5 +1,6 @@
 black
 boto3
+coverage
 flake8
 interrogate
 isort
