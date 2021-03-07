@@ -1,2 +1,2 @@
 # dynamo-pandas
-Make working with pandas data and AWS dynamodb easy
+Make working with pandas data and AWS DynamoDB easy.
