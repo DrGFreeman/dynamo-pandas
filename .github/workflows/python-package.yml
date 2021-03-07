@@ -13,9 +13,9 @@ jobs:
         python-version: [3.7]
         include:
           - python: 3.7
-            tox_env: py37-pandas10
-          - python: 3.7
-            tox_env: py37-pandaslatest
+            tox_env: 
+              - py37-pandas10
+              - py37-pandaslatest
 
     steps:
     - uses: actions/checkout@v2
