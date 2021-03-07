@@ -6,4 +6,9 @@ profile = "google"
 
 [tool.interrogate]
 fail-under = 100
+ignore-module = true
+ignore-nested-functions = true
+ignore-semiprivate = true
+exclude = [".vscode"]
 color = true
+verbose = 1
