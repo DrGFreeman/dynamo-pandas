@@ -9,13 +9,17 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7]
+        pandas: [10, latest]
         include:
           - python: 3.7
-            tox_env: 
-              - py37-pandas10
-              - py37-pandaslatest
+            pandas: "10"
+            tox_env: py37-pandas10
+          - python: 3.7
+            pandas: latest
+            tox_env: py37-pandaslatest
 
     steps:
     - uses: actions/checkout@v2
