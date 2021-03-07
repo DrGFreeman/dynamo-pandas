@@ -1,0 +1,11 @@
+black
+boto3
+flake8
+interrogate
+isort
+moto
+pandas
+pre-commit
+pytest
+pytest-cov
+pytest-randomly

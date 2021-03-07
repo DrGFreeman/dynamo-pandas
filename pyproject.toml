@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "google"
+
+[tool.interrogate]
+fail-under = 100
+color = true
