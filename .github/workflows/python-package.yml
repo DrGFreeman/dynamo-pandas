@@ -29,9 +29,6 @@ jobs:
           - python: 3.9
             pandas: latest
             tox_env: py39-pandaslatest
-        exclude:
-          - python: 3.9
-            pandas: 10
 
     steps:
     - uses: actions/checkout@v2
