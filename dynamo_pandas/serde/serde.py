@@ -32,12 +32,10 @@ class TypeSerializer(DDBTypeSerializer):
         elif isinstance(value, (pd.Timestamp, pd.Timedelta)):
             dynamodb_type = STRING
 
-        elif isinstance(value, (np.int8, np.int16, np.int32, np.int64)):
+        elif isinstance(value, (int, np.integer)):
             dynamodb_type = NUMBER
 
-        elif isinstance(
-            value, (float, np.float16, np.float32, np.float64, np.float128)
-        ):
+        elif isinstance(value, (float, np.floating)):
             if np.isnan(value):
                 dynamodb_type = NULL
             else:
