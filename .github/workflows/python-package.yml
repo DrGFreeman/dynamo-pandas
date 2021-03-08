@@ -14,22 +14,22 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
         pandas: [10, latest]
         exclude:
-          - python: 3.9
+          - python-version: 3.9
             pandas: "10"
         include:
-          - python: 3.7
+          - python-version: 3.7
             pandas: "10"
             tox_env: py37-pandas10
-          - python: 3.7
+          - python-version: 3.7
             pandas: latest
             tox_env: py37-pandaslatest
-          - python: 3.8
+          - python-version: 3.8
             pandas: "10"
             tox_env: py38-pandas10
-          - python: 3.8
+          - python-version: 3.8
             pandas: latest
             tox_env: py38-pandaslatest
-          - python: 3.9
+          - python-version: 3.9
             pandas: latest
             tox_env: py39-pandaslatest
 
