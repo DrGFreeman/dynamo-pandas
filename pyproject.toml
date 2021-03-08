@@ -9,6 +9,6 @@ fail-under = 100
 ignore-module = true
 ignore-nested-functions = true
 ignore-semiprivate = true
-exclude = [".vscode"]
+exclude = [".vscode", "setup.py"]
 color = true
 verbose = 1

@@ -28,4 +28,5 @@ repos:
   rev: 1.3.2
   hooks:
   - id: interrogate
-    args: [-c, pyproject.toml, -v]
+    exclude: ^(setup.py)
+    args: [--config=pyproject.toml, -v]
