@@ -1,6 +1,20 @@
 import pandas as pd
 
 
+def to_df(items, *, dtypes=None):
+    """Convert an item dictionary or list of item dictionaries into a pandas DataFrame.
+    """
+    if isinstance(items, dict):
+        items = [items]
+
+    df = pd.DataFrame(items)
+
+    if dtypes is not None:
+        df = df.astype(dtypes)
+
+    return df
+
+
 def to_items(df):
     """Convert a pandas dataframe to a dictionary of items."""
     if not isinstance(df, pd.DataFrame):
