@@ -51,10 +51,10 @@ class Test_to_df:
             "int64",
         ]
 
-    def test_with_dtypes(self):
-        """Test with dtypes specified."""
+    def test_with_dtype(self):
+        """Test with dtype parameter specified."""
         df = to_df(
-            test_items, dtypes=dict(D="datetime64", E="datetime64[ns, UTC]", F="Int32")
+            test_items, dtype=dict(D="datetime64", E="datetime64[ns, UTC]", F="Int32")
         )
 
         assert [t.name for t in df.dtypes] == [

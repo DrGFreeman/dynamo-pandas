@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def to_df(items, *, dtypes=None):
+def to_df(items, *, dtype=None):
     """Convert an item dictionary or list of item dictionaries into a pandas DataFrame.
     """
     if isinstance(items, dict):
@@ -9,8 +9,8 @@ def to_df(items, *, dtypes=None):
 
     df = pd.DataFrame(items)
 
-    if dtypes is not None:
-        df = df.astype(dtypes)
+    if dtype is not None:
+        df = df.astype(dtype)
 
     return df
 
