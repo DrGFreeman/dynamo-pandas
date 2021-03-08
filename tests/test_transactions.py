@@ -62,10 +62,7 @@ test_df = pd.DataFrame(
             "F": None,
             "G": None,
         },
-        {
-            "B": 4,
-            "C": 256000,
-        },
+        {"B": 4, "C": 256000},
     ]
 ).astype(
     {
@@ -78,11 +75,7 @@ test_df = pd.DataFrame(
 test_df["id"] = range(len(test_df))
 
 large_table_items = [
-    dict(
-        id=i,
-        letter=random.choice(ascii_letters),
-        number=random.randint(0, 1000),
-    )
+    dict(id=i, letter=random.choice(ascii_letters), number=random.randint(0, 1000))
     for i in range(250)
 ]
 
