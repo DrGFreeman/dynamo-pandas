@@ -1,163 +1,16 @@
-import base64
-import math
-import os
-import random
 import re
-from string import ascii_letters
 import sys
 
 import pandas as pd
 import pytest
+from test_data import large_table_items
+from test_data import test_df
 
 from dynamo_pandas.transactions import get_all_items
 from dynamo_pandas.transactions import get_item
 from dynamo_pandas.transactions import get_items
 from dynamo_pandas.transactions import keys
 from dynamo_pandas.transactions import put_item
-
-"""Define a test dataframe with mixed types and missing values:
->>> print(test_df)
-      A  B               C          D                         E     F  \
-0   abc  2 0 days 19:32:01 2000-01-01 2000-01-01 00:00:00+00:00   128   
-1  None  3 1 days 01:33:20 2000-12-31 2000-12-31 23:59:59+00:00  <NA>   
-2   NaN  4 2 days 23:06:40        NaT                       NaT  <NA>   
-
-          G  id  
-0  3.141593   0  
-1       NaN   1  
-2       NaN   2  
->>> test_df.info()
-<class 'pandas.core.frame.DataFrame'>
-RangeIndex: 3 entries, 0 to 2
-Data columns (total 8 columns):
- #   Column  Non-Null Count  Dtype              
----  ------  --------------  -----              
- 0   A       1 non-null      object             
- 1   B       3 non-null      int64              
- 2   C       3 non-null      timedelta64[ns]    
- 3   D       2 non-null      datetime64[ns]     
- 4   E       2 non-null      datetime64[ns, UTC]
- 5   F       1 non-null      Int32              
- 6   G       1 non-null      float64            
- 7   id      3 non-null      int64              
-dtypes: Int32(1), datetime64[ns, UTC](1), datetime64[ns](1), float64(1), int64(2), object(1), timedelta64[ns](1)
-memory usage: 311.0+ bytes"""  # noqa: E501, W291
-test_df = pd.DataFrame(
-    [
-        {
-            "A": "abc",
-            "B": 2,
-            "C": 70321.4,
-            "D": "2000-01-01",
-            "E": "2000-01-01",
-            "F": 128,
-            "G": math.pi,
-        },
-        {
-            "A": None,
-            "B": 3,
-            "C": 92000,
-            "D": "2000-12-31",
-            "E": "2000-12-31 23:59:59",
-            "F": None,
-            "G": None,
-        },
-        {"B": 4, "C": 256000},
-    ]
-).astype(
-    {
-        "C": "timedelta64[s]",
-        "D": "datetime64[ns]",
-        "E": "datetime64[ns, UTC]",
-        "F": "Int32",
-    }
-)
-test_df["id"] = range(len(test_df))
-
-large_table_items = [
-    dict(id=i, letter=random.choice(ascii_letters), number=random.randint(0, 1000))
-    for i in range(250)
-]
-
-
-@pytest.fixture()
-def empty_table(ddb_client):
-    """Fixture generating an empty table and yielding the name of the table. The table
-    primary key is named 'id' and is of numerical type."""
-    table_name = "test-empty-table"
-    response = ddb_client.create_table(
-        AttributeDefinitions=[dict(AttributeName="id", AttributeType="N")],
-        TableName=table_name,
-        KeySchema=[dict(AttributeName="id", KeyType="HASH")],
-        BillingMode="PROVISIONED",
-        ProvisionedThroughput=dict(ReadCapacityUnits=5, WriteCapacityUnits=5),
-    )
-    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-    yield table_name
-
-
-@pytest.fixture()
-def test_df_table(ddb_client):
-    """Fixture generating a table with the items from test_df and yielding the name of
-    the table. The table primary key is named 'id' and is of numerical type."""
-    table_name = "test-df-table"
-    response = ddb_client.create_table(
-        AttributeDefinitions=[dict(AttributeName="id", AttributeType="N")],
-        TableName=table_name,
-        KeySchema=[dict(AttributeName="id", KeyType="HASH")],
-        BillingMode="PROVISIONED",
-        ProvisionedThroughput=dict(ReadCapacityUnits=5, WriteCapacityUnits=5),
-    )
-    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    for item in test_df.to_dict("records"):
-        response = put_item(item=item, table=table_name, return_response=True)
-        assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    yield table_name
-
-
-@pytest.fixture()
-def large_table(ddb_client):
-    """Fixture providing a large table (250 items) to test get operations with more
-    than 100 items. The table primary key is named 'id' and is of numerical type."""
-    table_name = "test-large-table"
-    response = ddb_client.create_table(
-        AttributeDefinitions=[dict(AttributeName="id", AttributeType="N")],
-        TableName=table_name,
-        KeySchema=[dict(AttributeName="id", KeyType="HASH")],
-        BillingMode="PROVISIONED",
-        ProvisionedThroughput=dict(ReadCapacityUnits=5, WriteCapacityUnits=5),
-    )
-    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    for item in large_table_items:
-        response = put_item(item=item, table=table_name, return_response=True)
-        assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    yield table_name
-
-
-@pytest.fixture()
-def large_objects_table(ddb_client):
-    """Fixture providing a table with large objects (~395 KB each) to test get
-    operations with more generating large data sizes. The table primary key is named
-    'id' and is of numerical type."""
-    table_name = "test-large-objects-table"
-    response = ddb_client.create_table(
-        AttributeDefinitions=[dict(AttributeName="id", AttributeType="N")],
-        TableName=table_name,
-        KeySchema=[dict(AttributeName="id", KeyType="HASH")],
-        BillingMode="PAY_PER_REQUEST",
-    )
-    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    for i in range(100):
-        item = dict(id=i, A=base64.b64encode(os.urandom(296 * 1024)).decode())
-        response = put_item(item=item, table=table_name, return_response=True)
-        assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
-
-    yield table_name
 
 
 class Test_keys:
