@@ -9,11 +9,10 @@ on:
 jobs:
   unit-tests:
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
         python-version: [3.7, 3.8, 3.9]
         pandas: [10, latest]
         exclude:
