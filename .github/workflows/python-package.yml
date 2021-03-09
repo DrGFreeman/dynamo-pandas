@@ -19,6 +19,7 @@ jobs:
         exclude:
         - python-version: 3.9
           pandas: "10"
+          os: [ubuntu-20.04, windows-latest]
         - python-version: 3.8
           os: windows-latest
         - python-version: 3.7
@@ -27,18 +28,23 @@ jobs:
         include:
         - python-version: 3.7
           pandas: "10"
+          os: [ubuntu-20.04, windows-latest]
           tox_env: py37-pandas10
         - python-version: 3.7
           pandas: latest
+          os: [ubuntu-20.04, windows-latest]
           tox_env: py37-pandaslatest
         - python-version: 3.8
           pandas: "10"
+          os: [ubuntu-20.04, windows-latest]
           tox_env: py38-pandas10
         - python-version: 3.8
           pandas: latest
+          os: [ubuntu-20.04, windows-latest]
           tox_env: py38-pandaslatest
         - python-version: 3.9
           pandas: latest
+          os: [ubuntu-20.04, windows-latest]
           tox_env: py39-pandaslatest
 
     steps:
