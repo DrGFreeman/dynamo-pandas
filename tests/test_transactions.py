@@ -1,3 +1,5 @@
+import base64
+import os
 import re
 import sys
 
@@ -11,6 +13,7 @@ from dynamo_pandas.transactions import get_item
 from dynamo_pandas.transactions import get_items
 from dynamo_pandas.transactions import keys
 from dynamo_pandas.transactions import put_item
+from dynamo_pandas.transactions import put_items
 
 
 class Test_keys:
@@ -279,3 +282,49 @@ class Test_get_all_items:
         assert len(items) == 100
         size = sum(sys.getsizeof(i["id"]) + sys.getsizeof(i["A"]) for i in items)
         assert size / 1024 / 1024 > 1
+
+
+class Test_put_items:
+    """Test the put_items function."""
+
+    def test_simple_types(self, ddb_client, empty_table):
+        """Test with a simple list of items with stardard types."""
+        items = [dict(A="A", B=1, id=0), dict(A="B", B=2, id=1)]
+
+        put_items(items=items, table=empty_table)
+
+        assert get_all_items(table=empty_table) == items
+
+    def test_from_df_types(self, ddb_client, empty_table):
+        """Test with pandas data types from test_df."""
+        items = test_df.to_dict("records")
+
+        put_items(items=items, table=empty_table)
+
+    def test_large_number_of_items(self, ddb_client, empty_table):
+        """Test with more than 25 items (DynamoDB batch size limit for
+        batch_write_item)."""
+        items = large_table_items
+
+        put_items(items=items, table=empty_table)
+
+        assert len(get_all_items(table=empty_table)) == len(items)
+
+    def test_large_items(self, ddb_client, empty_table):
+        """Test with large items so that total request size exceeds 16 MB (DynamoDB
+        batch size limit for batch_write_item)."""
+        items = [
+            dict(id=i, A=base64.b64encode(os.urandom(296 * 1024)).decode())
+            for i in range(100)
+        ]
+
+        put_items(items=items, table=empty_table)
+
+        assert len(get_all_items(table=empty_table)) == len(items)
+
+    def test_item_not_a_list_raises(self, ddb_client, empty_table):
+        """Test that a TypeError is raised if items is not a list."""
+        with pytest.raises(
+            TypeError, match="items must be a list of non-empty dictionaries"
+        ):
+            put_items(items=large_table_items[0], table=empty_table)
