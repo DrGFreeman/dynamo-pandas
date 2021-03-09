@@ -43,20 +43,21 @@ def get_item(*, key, table):
 
 def get_items(*, keys, table):
     """Get a multiple items from a table."""
-    resource = boto3.resource("dynamodb")
 
-    def request(keys, table=table):
+    def _request(keys, table=table):
         return {table: {"Keys": keys}}
 
     def _get_items(keys, table=table):
-        response = resource.batch_get_item(RequestItems=request(keys))
+        response = resource.batch_get_item(RequestItems=_request(keys))
         items = response["Responses"][table]
 
         while response["UnprocessedKeys"] != {}:
-            response = resource.batch_get_item(RequestItems=request(keys))
+            response = resource.batch_get_item(RequestItems=_request(keys))
             items.extend(response["Responses"][table])
 
         return items
+
+    resource = boto3.resource("dynamodb")
 
     key_batches = _batches(keys, batch_size=100)
 
@@ -92,3 +93,35 @@ def put_item(*, item, table, return_response=False):
 
     if return_response:
         return response
+
+
+def put_items(*, items, table):
+    """Add or update multiple items in a table."""
+    if not isinstance(items, list):
+        raise TypeError("items must be a list of non-empty dictionaries")
+
+    def _put_items(items, table=table):
+        response = client.batch_write_item(
+            RequestItems={table: [{"PutRequest": {"Item": item}} for item in items]}
+        )
+        if response["UnprocessedItems"] != {}:
+            return response["UprocessedItems"][table]
+        else:
+            return []
+
+    client = boto3.client("dynamodb")
+
+    items_to_process = [i["M"] for i in ts.serialize(items)["L"]]
+
+    batch_size = 25
+    while len(items_to_process) > 0:
+        batch_items = items_to_process[:batch_size]
+        items_to_process = items_to_process[batch_size:]
+
+        unprocessed_items = _put_items(batch_items)
+
+        if len(unprocessed_items) > batch_size // 2:
+            batch_size = batch_size // 2 + 1
+
+        # Put unprocessed items at back of queue.
+        items_to_process.extend(unprocessed_items)
