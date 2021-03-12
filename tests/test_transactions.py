@@ -88,6 +88,16 @@ class Test_put_item:
         resp = ddb_client.get_item(TableName=empty_table, Key=dict(id=dict(N=str(id))))
         assert resp["Item"] == expected
 
+    def test_existing_key_overwrites(self, ddb_client, empty_table):
+        """Test that putting an item for which the key already exists overwrites the item.
+        """
+        put_item(item=dict(id=0, A=0, B=1), table=empty_table)
+
+        put_item(item=dict(id=0, A="abc"), table=empty_table)
+
+        resp = ddb_client.get_item(TableName=empty_table, Key=dict(id=dict(N="0")))
+        assert resp["Item"] == {"id": {"N": "0"}, "A": {"S": "abc"}}
+
 
 @pytest.mark.parametrize(
     ["id", "expected"],
