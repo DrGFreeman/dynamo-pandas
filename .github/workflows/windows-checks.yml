@@ -1,0 +1,50 @@
+name: Checks-Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit-tests:
+
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        pandas: [10, latest]
+        exclude:
+        - python-version: 3.9
+          pandas: "10"
+        include:
+        - python-version: 3.7
+          pandas: "10"
+          tox_env: py37-pandas10
+        - python-version: 3.7
+          pandas: latest
+          tox_env: py37-pandaslatest
+        - python-version: 3.8
+          pandas: "10"
+          tox_env: py38-pandas10
+        - python-version: 3.8
+          pandas: latest
+          tox_env: py38-pandaslatest
+        - python-version: 3.9
+          pandas: latest
+          tox_env: py39-pandaslatest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install tox
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install tox
+    - name: Test with pytest
+      run: |
+        tox -e ${{ matrix.tox_env }}
