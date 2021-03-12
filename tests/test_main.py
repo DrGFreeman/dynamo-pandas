@@ -1,8 +1,11 @@
+import re
+
 import pandas as pd
 import pytest
 from test_data import test_df
 
 from dynamo_pandas import get_df
+from dynamo_pandas import keys
 from dynamo_pandas import put_df
 from dynamo_pandas import to_df
 from dynamo_pandas import to_item
@@ -16,6 +19,22 @@ test_items_pd = test_df.to_dict("records")
 test_items = test_df.astype(dict(C="str", D="str", E="str", F="float")).to_dict(
     "records"
 )
+
+
+class Test_keys:
+    """Test the keys function."""
+
+    def test_partition_key_only(self):
+        """Test that the keys function works with only a partition key."""
+        assert keys(id=range(3)) == [{"id": 0}, {"id": 1}, {"id": 2}]
+
+    def test_two_or_more_kwargs_raises(self):
+        """Test that two or more keyword arguments raises a ValueError."""
+        with pytest.raises(
+            ValueError,
+            match=re.escape("Only one key attribute (partition key) is supported."),
+        ):
+            keys(id=[1, 2, 3], di=[3, 2, 1])
 
 
 class Test_get_df:

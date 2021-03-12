@@ -22,16 +22,6 @@ def _batches(items, batch_size):
         start += batch_size
 
 
-def keys(**kwargs):
-    """Generate a list of key dictionaries from the partition key attribute name and a
-    list of values."""
-    if len(kwargs.keys()) > 1:
-        raise ValueError("Only one key attribute (partition key) is supported.")
-
-    k = list(kwargs.keys())[0]
-    return [{k: v} for v in kwargs[k]]
-
-
 def get_item(*, key, table):
     """Get a single item from a table."""
     table = boto3.resource("dynamodb").Table(table)
