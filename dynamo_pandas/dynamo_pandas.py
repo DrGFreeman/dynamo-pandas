@@ -1,5 +1,24 @@
 import pandas as pd
 
+from .transactions import get_all_items
+from .transactions import get_items
+from .transactions import put_items
+
+
+def get_df(*, table, keys=None, dtype=None):
+    """Get items from a table into a dataframe."""
+    if keys is not None:
+        items = get_items(keys=keys, table=table)
+    else:
+        items = get_all_items(table=table)
+
+    return to_df(items=items, dtype=dtype)
+
+
+def put_df(df, *, table):
+    """Put rows of a dataframe as items into a table."""
+    put_items(items=to_items(df), table=table)
+
 
 def to_df(items, *, dtype=None):
     """Convert an item dictionary or list of item dictionaries into a pandas DataFrame.

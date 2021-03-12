@@ -2,6 +2,8 @@ import pandas as pd
 import pytest
 from test_data import test_df
 
+from dynamo_pandas import get_df
+from dynamo_pandas import put_df
 from dynamo_pandas import to_df
 from dynamo_pandas import to_item
 from dynamo_pandas import to_items
@@ -14,6 +16,166 @@ test_items_pd = test_df.to_dict("records")
 test_items = test_df.astype(dict(C="str", D="str", E="str", F="float")).to_dict(
     "records"
 )
+
+
+class Test_get_df:
+    """Test the get_df function."""
+
+    def test_no_keys(self, test_df_table):
+        """Test that not specifying keys returns all items."""
+        df = get_df(table=test_df_table)
+
+        assert {c: t.name for c, t in zip(df.columns, df.dtypes)} == {
+            "A": "object",
+            "B": "int64",
+            "C": "object",
+            "D": "object",
+            "E": "object",
+            "F": "float64",
+            "G": "float64",
+            "id": "int64",
+        }
+        assert df.equals(
+            pd.DataFrame(
+                [
+                    {
+                        "A": "abc",
+                        "B": 2,
+                        "C": "0 days 19:32:01",
+                        "D": "2000-01-01 00:00:00",
+                        "E": "2000-01-01 00:00:00+00:00",
+                        "F": 128.0,
+                        "G": 3.141592653589793,
+                        "id": 0,
+                    },
+                    {
+                        "A": None,
+                        "B": 3,
+                        "C": "1 days 01:33:20",
+                        "D": "2000-12-31 00:00:00",
+                        "E": "2000-12-31 23:59:59+00:00",
+                        "id": 1,
+                    },
+                    {
+                        "A": None,
+                        "B": 4,
+                        "C": "2 days 23:06:40",
+                        "D": None,
+                        "E": None,
+                        "id": 2,
+                    },
+                ]
+            )
+        )
+
+    def test_keys(self, test_df_table):
+        """"Test with keys specified. Also test that keys not in the table are ignored.
+        """
+        df = get_df(table=test_df_table, keys=[{"id": 0}, {"id": 2}, {"id": 3}])
+
+        assert {c: t.name for c, t in zip(df.columns, df.dtypes)} == {
+            "A": "object",
+            "B": "int64",
+            "C": "object",
+            "D": "object",
+            "E": "object",
+            "F": "float64",
+            "G": "float64",
+            "id": "int64",
+        }
+        assert df.equals(
+            pd.DataFrame(
+                [
+                    {
+                        "A": "abc",
+                        "B": 2,
+                        "C": "0 days 19:32:01",
+                        "D": "2000-01-01 00:00:00",
+                        "E": "2000-01-01 00:00:00+00:00",
+                        "F": 128.0,
+                        "G": 3.141592653589793,
+                        "id": 0,
+                    },
+                    {
+                        "A": None,
+                        "B": 4,
+                        "C": "2 days 23:06:40",
+                        "D": None,
+                        "E": None,
+                        "id": 2,
+                    },
+                ]
+            )
+        )
+
+    def test_single_key_missing(self, test_df_table):
+        """Test that a single key not in the table returns an empty dataframe."""
+        df = get_df(table=test_df_table, keys=[dict(id=3)])
+
+        assert df.empty
+
+    def test_dtype(self, test_df_table):
+        """Test that the dtype parameter controls the returned data types."""
+        df = get_df(
+            table=test_df_table,
+            dtype={
+                # "C": "timedelta64[ns]",  # Ref. #24
+                "D": "datetime64[ns]",
+                "E": "datetime64[ns, UTC]",
+                "F": "Int32",
+            },
+        )
+        assert {c: t.name for c, t in zip(df.columns, df.dtypes)} == {
+            "A": "object",
+            "B": "int64",
+            "C": "object",
+            "D": "datetime64[ns]",
+            "E": "datetime64[ns, UTC]",
+            "F": "Int32",
+            "G": "float64",
+            "id": "int64",
+        }
+
+
+class Test_put_df:
+    """Test the put_df function."""
+
+    def test_with_pd_types(self, ddb_client, empty_table):
+        """Test putting a dataframe using pandas specific data types."""
+        put_df(df=test_df, table=empty_table)
+
+        assert get_df(table=empty_table).equals(
+            pd.DataFrame(
+                [
+                    {
+                        "A": "abc",
+                        "B": 2,
+                        "C": "0 days 19:32:01",
+                        "D": "2000-01-01 00:00:00",
+                        "E": "2000-01-01 00:00:00+00:00",
+                        "F": 128.0,
+                        "G": 3.141592653589793,
+                        "id": 0,
+                    },
+                    {
+                        "A": None,
+                        "B": 3,
+                        "C": "1 days 01:33:20",
+                        "D": "2000-12-31 00:00:00",
+                        "E": "2000-12-31 23:59:59+00:00",
+                        "id": 1,
+                    },
+                    {
+                        "A": None,
+                        "B": 4,
+                        "C": "2 days 23:06:40",
+                        "D": None,
+                        "E": None,
+                        "id": 2,
+                    },
+                ]
+            )
+        )
 
 
 class Test_to_df:
@@ -54,7 +216,13 @@ class Test_to_df:
     def test_with_dtype(self):
         """Test with dtype parameter specified."""
         df = to_df(
-            test_items, dtype=dict(D="datetime64", E="datetime64[ns, UTC]", F="Int32")
+            test_items,
+            dtype=dict(
+                # C="timedelta64[ns]",  # Ref. #24
+                D="datetime64",
+                E="datetime64[ns, UTC]",
+                F="Int32",
+            ),
         )
 
         assert [t.name for t in df.dtypes] == [
