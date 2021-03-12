@@ -34,7 +34,17 @@ setup(
     license="MIT",
     url="https://github.com/DrGFreeman/dynamo-pandas",
     description="Make working with pandas dataframe and AWS DynamoDB easy.",
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=["boto3", "pandas>=1"],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+    ],
 )
