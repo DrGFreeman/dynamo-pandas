@@ -15,6 +15,16 @@ def get_df(*, table, keys=None, dtype=None):
     return to_df(items=items, dtype=dtype)
 
 
+def keys(**kwargs):
+    """Generate a list of key dictionaries from the partition key attribute name and a
+    list of values."""
+    if len(kwargs.keys()) > 1:
+        raise ValueError("Only one key attribute (partition key) is supported.")
+
+    k = list(kwargs.keys())[0]
+    return [{k: v} for v in kwargs[k]]
+
+
 def put_df(df, *, table):
     """Put rows of a dataframe as items into a table."""
     put_items(items=to_items(df), table=table)

@@ -1,6 +1,5 @@
 import base64
 import os
-import re
 import sys
 
 import pandas as pd
@@ -8,28 +7,12 @@ import pytest
 from test_data import large_table_items
 from test_data import test_df
 
+from dynamo_pandas import keys
 from dynamo_pandas.transactions import get_all_items
 from dynamo_pandas.transactions import get_item
 from dynamo_pandas.transactions import get_items
-from dynamo_pandas.transactions import keys
 from dynamo_pandas.transactions import put_item
 from dynamo_pandas.transactions import put_items
-
-
-class Test_keys:
-    """Test the keys function."""
-
-    def test_partition_key_only(self):
-        """Test that the keys function works with only a partition key."""
-        assert keys(id=range(3)) == [{"id": 0}, {"id": 1}, {"id": 2}]
-
-    def test_two_or_more_kwargs_raises(self):
-        """Test that two or more keyword arguments raises a ValueError."""
-        with pytest.raises(
-            ValueError,
-            match=re.escape("Only one key attribute (partition key) is supported."),
-        ):
-            keys(id=[1, 2, 3], di=[3, 2, 1])
 
 
 class Test_put_item:
