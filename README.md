@@ -60,7 +60,7 @@ Storing the rows of this dataframe to DynamoDB requires multiple data type conve
 >>> from dynamo_pandas import put_df, get_df, keys
 ```
 
-The `put_df` function add or updates the rows of a dataframe into the specified table and takes care of the required type conversions.
+The `put_df` function adds or updates the rows of a dataframe into the specified table, taking care of the required type conversions (the table must be already created and the primary key column(s) be present in the dataframe).
 
 ```
 >>> put_df(players_df, table="players")
