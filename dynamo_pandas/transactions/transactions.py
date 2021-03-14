@@ -23,7 +23,33 @@ def _batches(items, batch_size):
 
 
 def get_item(*, key, table):
-    """Get a single item from a table."""
+    """Get a single item from a table.
+
+    Parameters
+    ----------
+    key : dict
+        Key of the item to get.
+
+    table : str
+        Name of the DynamoDB table.
+
+    Returns
+    -------
+    dict, None
+        A dictionary representing the item's attributes. None if the key does not exist
+        in the table.
+
+    Examples
+    --------
+
+    >>> item = get_item(key={"player_id": "player_two"}, table="players")
+    >>> print(item)
+    {'bonus_points': 1,
+     'player_id': 'player_two',
+     'last_play': '2021-01-19 19:07:54',
+     'rating': 3.8,
+     'play_time': '0 days 22:07:34'}
+    """
     table = boto3.resource("dynamodb").Table(table)
 
     item = table.get_item(Key=key).get("Item")
@@ -32,7 +58,37 @@ def get_item(*, key, table):
 
 
 def get_items(*, keys, table):
-    """Get a multiple items from a table."""
+    """Get multiple items from a table.
+
+    Parameters
+    ----------
+    keys : list[dict]
+        List of key dictionaries of the items to get.
+
+    table : str
+        Name of the DynamoDB table.
+
+    Returns
+    -------
+    list[dict]
+        List of dictionaties where each dictionary represents an item's attributes.
+        Only items for which the key exists in the table are returned.
+
+    Examples
+    --------
+
+    >>> items = get_items(
+    ...     keys=[
+    ...         {"player_id": "player_two"},
+    ...         {"player_id": "player_one"},
+    ...         {"player_id": "player_five"}, # Not in the table
+    ...     ],
+    ...     table="players"
+    ... )
+    >>> print(items)
+    [{'bonus_points': 3, 'player_id': 'player_one', 'last_play': '2021-01-18 22:47:23', 'rating': 4.3, 'play_time': '2 days 17:41:55'},
+     {'bonus_points': 1, 'player_id': 'player_two', 'last_play': '2021-01-19 19:07:54', 'rating': 3.8, 'play_time': '0 days 22:07:34'}]
+    """  # noqa: E501
 
     def _request(keys, table=table):
         return {table: {"Keys": keys}}
@@ -59,7 +115,30 @@ def get_items(*, keys, table):
 
 
 def get_all_items(*, table):
-    """Get all the items in a table."""
+    """Get all the items in a table.
+
+    This function performs a scan of the table.
+
+    Parameters
+    ----------
+    table : str
+        Name of the DynamoDB table.
+
+    Returns
+    -------
+    list[dict]
+        List of dictionaties where each dictionary represents an item's attributes.
+
+    Examples
+    --------
+
+    >>> items = get_all_items(table="players")
+    >>> print(items)
+    [{'bonus_points': 4, 'player_id': 'player_three', 'last_play': '2021-01-21 10:22:43', 'rating': 2.5, 'play_time': '1 days 14:01:19'},
+     {'bonus_points': None, 'player_id': 'player_four', 'last_play': '2021-01-22 13:51:12', 'rating': 4.8, 'play_time': '0 days 03:45:49'},
+     {'bonus_points': 3, 'player_id': 'player_one', 'last_play': '2021-01-18 22:47:23', 'rating': 4.3, 'play_time': '2 days 17:41:55'},
+     {'bonus_points': 1, 'player_id': 'player_two', 'last_play': '2021-01-19 19:07:54', 'rating': 3.8, 'play_time': '0 days 22:07:34'}]
+    """  # noqa: E501
     table = boto3.resource("dynamodb").Table(table)
 
     response = table.scan()
@@ -73,7 +152,41 @@ def get_all_items(*, table):
 
 
 def put_item(*, item, table, return_response=False):
-    """Add or update an item in a table."""
+    """Add or update an item in a table. If the item does not exist in the table it is
+    created, otherwise the existing item is replaced with the new one.
+
+    Item can use supported numpy or pandas data types.
+
+    Parameters
+    ----------
+    item : dict
+        A dictionary representing the item's attributes. The item must include the
+        table's primary key attributes.
+
+    table : str
+        Name of the DynamoDB table.
+
+    return_response : bool
+        If True, the response from the boto3 API call will be returned.
+
+    Returns
+    -------
+    None, dict
+        None if ``return_response`` is False, the boto3 API call response if True.
+
+    Examples
+    --------
+
+    >>> print(item)
+    {'player_id': 'player_three',
+     'bonus_points': 4,
+     'last_play': Timestamp('2021-01-21 10:22:43+0000', tz='UTC'),
+     'rating': 2.5,
+     'play_time': Timedelta('1 days 14:01:19')}
+    >>> response = put_item(item=item, table="players", return_response=True)
+    >>> print(response["ResponseMetadata"]["HTTPStatusCode"])
+    200
+    """
     if not isinstance(item, dict):
         raise TypeError("item must be a non-empty dictionary")
 
@@ -86,7 +199,35 @@ def put_item(*, item, table, return_response=False):
 
 
 def put_items(*, items, table):
-    """Add or update multiple items in a table."""
+    """Add or update multiple items in a table. If the item(s) do not exist in the
+    table they are created, otherwise the existing items are replaced with the new ones.
+
+    Items can use supported numpy or pandas data types.
+
+    Parameters
+    ----------
+    items : list[dict]
+        List of dictionaties where each dictionary represents an item's attributes.
+
+    table : str
+        Name of the DynamoDB table.
+
+    Examples
+    --------
+
+    >>> pprint(items)
+    [{'bonus_points': 4,
+      'last_play': Timestamp('2021-01-21 10:22:43+0000', tz='UTC'),
+      'play_time': Timedelta('1 days 14:01:19'),
+      'player_id': 'player_three',
+      'rating': 2.5},
+     {'bonus_points': <NA>,
+      'last_play': Timestamp('2021-01-22 13:51:12+0000', tz='UTC'),
+      'play_time': Timedelta('0 days 03:45:49'),
+      'player_id': 'player_four',
+      'rating': 4.8}]
+    >>> put_items(items=items, table="players)
+    """
     if not isinstance(items, list):
         raise TypeError("items must be a list of non-empty dictionaries")
 

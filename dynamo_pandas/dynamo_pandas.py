@@ -153,8 +153,8 @@ def keys(**kwargs):
 
 
 def put_df(df, *, table):
-    """Put rows of a dataframe as items into a table. If the item(s) do not exist in
-    the table they are created, otherwise they are replaced with the new ones.
+    """Put rows of a dataframe as items into a table. If the item(s) do not exist in the
+    table they are created, otherwise the existing items are replaced with the new ones.
 
     Parameters
     ----------
