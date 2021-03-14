@@ -12,7 +12,7 @@ class TypeSerializer(DDBTypeSerializer):
     <https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/dynamodb/types.html>`_
     class with support for pandas data types.
 
-    Differences in type conversion from the parent class are the following:::
+    Differences in type conversion from the parent class are the following::
 
         Python                                  DynamoDB
         ------                                  --------
@@ -63,7 +63,7 @@ class TypeDeserializer(DDBTypeDeserializer):
     <https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/dynamodb/types.html>`_
     class with conversion of numbers to float and int types instead of Decimal.
 
-    Differences in type conversion from the parent class are the following:::
+    Differences in type conversion from the parent class are the following::
 
         DynamoDB                                Python
         --------                                ------
