@@ -24,7 +24,7 @@ copyright = "2021, Julien de la Bruère-Terreault"
 author = "Julien de la Bruère-Terreault"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.0"
+release = "1.0.0"
 
 
 # -- General configuration ---------------------------------------------------
