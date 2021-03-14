@@ -1,12 +1,21 @@
+![unit-tests-linux](https://github.com/drgfreeman/dynamo-pandas/actions/workflows/linux-checks.yml/badge.svg)
+![unit-tests-windows](https://github.com/drgfreeman/dynamo-pandas/actions/workflows/windows-checks.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/dynamo-pandas/badge/?version=latest)](https://dynamo-pandas.readthedocs.io/en/latest/?badge=latest)
+
 # dynamo-pandas
 Make working with pandas data and AWS DynamoDB easy.
 
-**\*\*In development.\*\***
+**\*\*In development.\*\*** : This project is in development and the API is subject to changes.
 
 ## Motivation
 This package aims a making the transfer of data between pandas dataframes and DynamoDB as simple as possible. To meet this goal, the package offers two key features:
 1. Automatic conversion of pandas data types to DynamoDB supported data types.
 1. A simple, high level interface to *put* data from a dataframe into a DynamoDB table and *get* all or selected items from a table into a dataframe.
+
+
+## Documentation
+
+The project's documentation is available at https://dynamo-pandas.readthedocs.io/ (in-development).
 
 
 ## Requirements
