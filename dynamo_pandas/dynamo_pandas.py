@@ -116,7 +116,7 @@ def get_df(*, table, keys=None, dtype=None):
     else:
         items = get_all_items(table=table)
 
-    return to_df(items=items, dtype=dtype)
+    return _to_df(items=items, dtype=dtype)
 
 
 def keys(**kwargs):
@@ -181,10 +181,10 @@ def put_df(df, *, table):
 
     >>> put_df(players_df, table="players")
     """
-    put_items(items=to_items(df), table=table)
+    put_items(items=_to_items(df), table=table)
 
 
-def to_df(items, *, dtype=None):
+def _to_df(items, *, dtype=None):
     """Convert an item dictionary or list of item dictionaries into a pandas DataFrame.
     """
     if isinstance(items, dict):
@@ -198,28 +198,9 @@ def to_df(items, *, dtype=None):
     return df
 
 
-def to_items(df):
+def _to_items(df):
     """Convert a pandas dataframe to a dictionary of items."""
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a pandas DataFrame")
 
     return df.to_dict("records")
-
-
-def to_item(obj):
-    """Convert a pandas Series or a single row pandas DataFrame to an item dictionary.
-    """
-    if isinstance(obj, pd.DataFrame):
-        if len(obj) != 1:
-            raise ValueError(
-                "obj must be a single row dataframe. Use the to_items function to "
-                + "convert a multi row dataframe."
-            )
-
-        return obj.to_dict("records")[0]
-
-    elif isinstance(obj, pd.Series):
-        return obj.to_dict()
-
-    else:
-        raise TypeError("obj must be a pandas Series or a single row pandas DataFrame")

@@ -7,9 +7,8 @@ from test_data import test_df
 from dynamo_pandas import get_df
 from dynamo_pandas import keys
 from dynamo_pandas import put_df
-from dynamo_pandas import to_df
-from dynamo_pandas import to_item
-from dynamo_pandas import to_items
+from dynamo_pandas.dynamo_pandas import _to_df
+from dynamo_pandas.dynamo_pandas import _to_items
 
 # List of item dictionaries with pandas dtypes
 test_items_pd = test_df.to_dict("records")
@@ -197,12 +196,12 @@ class Test_put_df:
         )
 
 
-class Test_to_df:
-    """Test the to_df function."""
+class Test__to_df:
+    """Test the _to_df function."""
 
     def test_single_item_dict(self):
         """Test conversion of a single item dictionary."""
-        df = to_df(test_items[0])
+        df = _to_df(test_items[0])
 
         assert df.equals(pd.DataFrame([test_items[0]]))
         assert [t.name for t in df.dtypes] == [
@@ -218,7 +217,7 @@ class Test_to_df:
 
     def test_multiple_item_dicts(self):
         """Test conversion of a list of item dictionaries."""
-        df = to_df(test_items)
+        df = _to_df(test_items)
 
         assert df.equals(pd.DataFrame(test_items))
         assert [t.name for t in df.dtypes] == [
@@ -234,7 +233,7 @@ class Test_to_df:
 
     def test_with_dtype(self):
         """Test with dtype parameter specified."""
-        df = to_df(
+        df = _to_df(
             test_items,
             dtype=dict(
                 # C="timedelta64[ns]",  # Ref. #24
@@ -256,49 +255,12 @@ class Test_to_df:
         ]
 
 
-class Test_to_item:
-    """Test the to_item function."""
-
-    @pytest.mark.parametrize("id", range(3))
-    def test_df_single_row(self, id):
-        """Test conversion of a single dataframe row."""
-        item = to_item(test_df.loc[test_df.id == id])
-
-        if id == 0:
-            assert item == test_items_pd[id]
-        else:
-            # Compare dictionary string values as pd.NA and np.nan fail comparison
-            assert str(item) == str(test_items_pd[id])
-
-    def test_df_multiple_rows_raises(self):
-        """Test that a dataframe with multiple rows raises a ValueError."""
-        with pytest.raises(
-            ValueError,
-            match="obj must be a single row dataframe. Use the to_items function",
-        ):
-            to_item(test_df)
-
-    def test_series(self):
-        """Test conversion of a pandas series."""
-        item = to_item(test_df.iloc[0])
-
-        assert item == test_items_pd[0]
-
-    def test_invalid_type_raises(self):
-        """Test that a type other than a dataframe or series raises a TypeError."""
-        with pytest.raises(
-            TypeError,
-            match="obj must be a pandas Series or a single row pandas DataFrame",
-        ):
-            to_item(test_items_pd[0])
-
-
-class Test_to_items:
-    """Test the to_items function."""
+class Test__to_items:
+    """Test the _to_items function."""
 
     def test_df(self):
         """Test that a dataframe converts to a list of item dictionaries."""
-        items = to_items(test_df)
+        items = _to_items(test_df)
 
         # Compare dictionary string values as pd.NA and np.nan fail comparison
         assert str(items) == str(test_items_pd)
@@ -306,4 +268,4 @@ class Test_to_items:
     def test_invalid_type_raises(self):
         """Test that a type different than a DataFrame raises a TypeError."""
         with pytest.raises(TypeError, match="df must be a pandas DataFrame"):
-            to_items(test_items_pd)
+            _to_items(test_items_pd)
