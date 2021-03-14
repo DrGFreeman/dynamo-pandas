@@ -17,8 +17,8 @@ class TypeSerializer(DDBTypeSerializer):
         Python                                  DynamoDB
         ------                                  --------
         numpy.nan, pandas.NA                    {'NULL': True}
-        int, numpy.int64(32, 16, 8)             {'N': str(value)}
-        float, numpy.float64(128, 32, 16)       {'N': str(value)}
+        int, numpy.integer                      {'N': str(value)}
+        float, numpy.floating                   {'N': str(value)}
         pandas nullable Int64(32, 16, 8)        {'N': str(value)}
         pandas.Timestamp                        {'S': str(value)}
         pandas.Timedelta                        {'S': str(value)}
