@@ -167,3 +167,7 @@ Omitting the `keys` parameter performs a scan of the table and returns all the i
     2           3.0    player_one  2021-01-18 22:47:23     4.3  2 days 17:41:55
     3           1.0    player_two  2021-01-19 19:07:54     3.8  0 days 22:07:34
 ```
+
+## License
+
+Released under the terms of the [MIT License](LICENSE).
