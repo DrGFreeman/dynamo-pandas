@@ -8,6 +8,5 @@ dynamo_pandas
 
 .. automodule:: dynamo_pandas
    :members:
-   :imported-members:
    :undoc-members:
    :show-inheritance:
