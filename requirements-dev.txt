@@ -10,5 +10,7 @@ pre-commit
 pytest
 pytest-cov
 pytest-randomly
+sphinx
+sphinx_rtd_theme
 twine
 wheel
