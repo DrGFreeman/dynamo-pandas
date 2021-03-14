@@ -5,8 +5,6 @@
 # dynamo-pandas
 Make working with pandas data and AWS DynamoDB easy.
 
-**\*\*In development.\*\*** : This project is in development and the API is subject to changes.
-
 ## Motivation
 This package aims a making the transfer of data between pandas dataframes and DynamoDB as simple as possible. To meet this goal, the package offers two key features:
 1. Automatic conversion of pandas data types to DynamoDB supported data types.
@@ -15,7 +13,7 @@ This package aims a making the transfer of data between pandas dataframes and Dy
 
 ## Documentation
 
-The project's documentation is available at https://dynamo-pandas.readthedocs.io/ (in-development).
+The project's documentation is available at https://dynamo-pandas.readthedocs.io/.
 
 
 ## Requirements
