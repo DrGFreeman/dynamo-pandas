@@ -18,14 +18,23 @@ The project's documentation is available at https://dynamo-pandas.readthedocs.io
 
 ## Requirements
 * `python>=3.7`
-* `boto3`
 * `pandas>=1`
+* `boto3`
 
 ## Installation
 
 ```
 python -m pip install dynamo-pandas
 ```
+
+This will install the package and its dependencies except for `boto3` which is not installed by default to avoid unnecessary installation when building Lambda layers.
+
+To include `boto3` as part of the installation, add the `boto3` "extra" this way:
+
+```
+python -m pip install dynamo-pandas[boto3]
+```
+
 ## Example Usage
 
 Consider the pandas DataFrame below.
