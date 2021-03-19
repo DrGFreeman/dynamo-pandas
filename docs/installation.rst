@@ -13,11 +13,20 @@ Install ``dynamo-pandas`` from `PyPI <https://pypi.org/project/dynamo-pandas/>`_
     $ pip install dynamo-pandas
 
 
+This will install the package and its dependencies except for `boto3` which is not installed by default to avoid unnecessary installation when building Lambda layers.
+
+To include `boto3` as part of the installation, add the `boto3` "extra" this way:
+
+.. code-block:: console
+
+    $ python -m pip install dynamo-pandas[boto3]
+
+
 Requirements
 ------------
 
 ``dynamo-pandas`` has the following requirements:
 
 * ``python`` >= 3.7
-* ``boto3``
 * ``pandas`` >= 1
+* ``boto3``

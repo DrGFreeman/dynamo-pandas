@@ -1,11 +1,9 @@
 black==19.10b0
-boto3
 coverage
 flake8==3.8.4
 interrogate
 isort==5.7.0
 moto
-pandas
 pre-commit
 pytest
 pytest-cov
