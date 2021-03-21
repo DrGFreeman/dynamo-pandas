@@ -22,7 +22,7 @@ def _batches(items, batch_size):
         start += batch_size
 
 
-def get_item(*, key, table):
+def get_item(*, key, table, attributes=None):
     """Get a single item from a table.
 
     Parameters
@@ -32,6 +32,10 @@ def get_item(*, key, table):
 
     table : str
         Name of the DynamoDB table.
+
+    attributes : list[str]
+        Names of the item attributes to return. If None (default), all attributes are
+        returned.
 
     Returns
     -------
@@ -49,15 +53,29 @@ def get_item(*, key, table):
      'last_play': '2021-01-19 19:07:54',
      'rating': 3.8,
      'play_time': '0 days 22:07:34'}
+
+    Get only specific attributes:
+
+    >>> item = get_item(
+    ...     key={"player_id": "player_two"},
+    ...     table="players",
+    ...     attributes=["play_time", "rating"]
+    ... )
+    >>> print(item)
+    {'rating': 3.8, 'play_time': '0 days 22:07:34'}
     """
     table = boto3.resource("dynamodb").Table(table)
 
-    item = table.get_item(Key=key).get("Item")
+    kwargs = {}
+    if attributes is not None:
+        kwargs["ProjectionExpression"] = ", ".join(attributes)
+
+    item = table.get_item(Key=key, **kwargs).get("Item")
 
     return _deserialize(item)
 
 
-def get_items(*, keys, table):
+def get_items(*, keys, table, attributes=None):
     """Get multiple items from a table.
 
     Parameters
@@ -67,6 +85,10 @@ def get_items(*, keys, table):
 
     table : str
         Name of the DynamoDB table.
+
+    attributes : list[str]
+        Names of the item attributes to return. If None (default), all attributes are
+        returned.
 
     Returns
     -------
@@ -88,12 +110,27 @@ def get_items(*, keys, table):
     >>> print(items)
     [{'bonus_points': 3, 'player_id': 'player_one', 'last_play': '2021-01-18 22:47:23', 'rating': 4.3, 'play_time': '2 days 17:41:55'},
      {'bonus_points': 1, 'player_id': 'player_two', 'last_play': '2021-01-19 19:07:54', 'rating': 3.8, 'play_time': '0 days 22:07:34'}]
+
+    Get only specific attributes:
+
+    >>> items = get_items(
+    ...     keys=[{"player_id": "player_two"}, {"player_id": "player_one"}],
+    ...     table="players",
+    ...     attributes=["player_id", "play_time"]
+    ... )
+    >>> print(items)
+    [{'player_id': 'player_one', 'play_time': '2 days 17:41:55'}, {'player_id': 'player_two', 'play_time': '0 days 22:07:34'}]
     """  # noqa: E501
 
-    def _request(keys, table=table):
-        return {table: {"Keys": keys}}
+    def _request(keys, table=table, attributes=attributes):
+        table_dict = {"Keys": keys}
 
-    def _get_items(keys, table=table):
+        if attributes is not None:
+            table_dict["ProjectionExpression"] = ", ".join(attributes)
+
+        return {table: table_dict}
+
+    def _get_items(keys, table=table, attributes=attributes):
         response = resource.batch_get_item(RequestItems=_request(keys))
         items = response["Responses"][table]
 
@@ -114,7 +151,7 @@ def get_items(*, keys, table):
     return _deserialize(items)
 
 
-def get_all_items(*, table):
+def get_all_items(*, table, attributes=None):
     """Get all the items in a table.
 
     This function performs a scan of the table.
@@ -123,6 +160,10 @@ def get_all_items(*, table):
     ----------
     table : str
         Name of the DynamoDB table.
+
+    attributes : list[str]
+        Names of the item attributes to return. If None (default), all attributes are
+        returned.
 
     Returns
     -------
@@ -138,14 +179,28 @@ def get_all_items(*, table):
      {'bonus_points': None, 'player_id': 'player_four', 'last_play': '2021-01-22 13:51:12', 'rating': 4.8, 'play_time': '0 days 03:45:49'},
      {'bonus_points': 3, 'player_id': 'player_one', 'last_play': '2021-01-18 22:47:23', 'rating': 4.3, 'play_time': '2 days 17:41:55'},
      {'bonus_points': 1, 'player_id': 'player_two', 'last_play': '2021-01-19 19:07:54', 'rating': 3.8, 'play_time': '0 days 22:07:34'}]
+
+    Get only specific attributes:
+
+    >>> items = get_all_items(table="players", attributes=["player_id", "play_time"])
+    >>> print(items)
+    [{'player_id': 'player_three', 'play_time': '1 days 14:01:19'},
+     {'player_id': 'player_four', 'play_time': '0 days 03:45:49'},
+     {'player_id': 'player_one', 'play_time': '2 days 17:41:55'},
+     {'player_id': 'player_two', 'play_time': '0 days 22:07:34'}]
     """  # noqa: E501
     table = boto3.resource("dynamodb").Table(table)
 
-    response = table.scan()
+    kwargs = {}
+    if attributes is not None:
+        kwargs["ProjectionExpression"] = ", ".join(attributes)
+
+    response = table.scan(**kwargs)
+
     items = response["Items"]
 
     while "LastEvaluatedKey" in response:
-        response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+        response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"], **kwargs)
         items.extend(response["Items"])
 
     return _deserialize(items)
@@ -207,7 +262,7 @@ def put_items(*, items, table):
     Parameters
     ----------
     items : list[dict]
-        List of dictionaties where each dictionary represents an item's attributes.
+        List of dictionaries where each dictionary represents an item's attributes.
 
     table : str
         Name of the DynamoDB table.

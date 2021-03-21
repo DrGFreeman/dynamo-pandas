@@ -82,57 +82,67 @@ class Test_put_item:
         assert resp["Item"] == {"id": {"N": "0"}, "A": {"S": "abc"}}
 
 
-@pytest.mark.parametrize(
-    ["id", "expected"],
-    [
-        (
-            0,
-            {
-                "A": "abc",
-                "B": 2,
-                "C": "0 days 19:32:01",
-                "D": "2000-01-01 00:00:00",
-                "E": "2000-01-01 00:00:00+00:00",
-                "F": 128,
-                "G": 3.141592653589793,
-                "id": 0,
-            },
-        ),
-        (
-            1,
-            {
-                "A": None,
-                "B": 3,
-                "C": "1 days 01:33:20",
-                "D": "2000-12-31 00:00:00",
-                "E": "2000-12-31 23:59:59+00:00",
-                "F": None,
-                "G": None,
-                "id": 1,
-            },
-        ),
-        (
-            2,
-            {
-                "A": None,
-                "B": 4,
-                "C": "2 days 23:06:40",
-                "D": None,
-                "E": None,
-                "F": None,
-                "G": None,
-                "id": 2,
-            },
-        ),
-        (3, None),
-    ],
-)
-def test_get_item(ddb_client, test_df_table, id, expected):
-    """Test the get_item function. Compare the returned item dictionary with the
-    expected one for each item in test_df."""
-    item = get_item(key=dict(id=id), table=test_df_table)
+class Test_get_item:
+    """Test the get_item function."""
 
-    assert item == expected
+    @pytest.mark.parametrize(
+        ["id", "expected"],
+        [
+            (
+                0,
+                {
+                    "A": "abc",
+                    "B": 2,
+                    "C": "0 days 19:32:01",
+                    "D": "2000-01-01 00:00:00",
+                    "E": "2000-01-01 00:00:00+00:00",
+                    "F": 128,
+                    "G": 3.141592653589793,
+                    "id": 0,
+                },
+            ),
+            (
+                1,
+                {
+                    "A": None,
+                    "B": 3,
+                    "C": "1 days 01:33:20",
+                    "D": "2000-12-31 00:00:00",
+                    "E": "2000-12-31 23:59:59+00:00",
+                    "F": None,
+                    "G": None,
+                    "id": 1,
+                },
+            ),
+            (
+                2,
+                {
+                    "A": None,
+                    "B": 4,
+                    "C": "2 days 23:06:40",
+                    "D": None,
+                    "E": None,
+                    "F": None,
+                    "G": None,
+                    "id": 2,
+                },
+            ),
+            (3, None),
+        ],
+    )
+    def test_all_attributes(self, ddb_client, test_df_table, id, expected):
+        """Test the get_item function. Compare the returned item dictionary with the
+        expected one for each item in test_df."""
+        item = get_item(key=dict(id=id), table=test_df_table)
+
+        assert item == expected
+
+    def test_attributes_returns_selected_attributes(self, ddb_client, test_df_table):
+        """Test that only the attributes specified by the attributes parameter are
+        returned."""
+        item = get_item(key=dict(id=0), table=test_df_table, attributes=["A", "F"])
+
+        assert item == {"A": "abc", "F": 128}
 
 
 class Test_get_items:
@@ -178,6 +188,19 @@ class Test_get_items:
                 "G": 3.141592653589793,
                 "id": 0,
             }
+        ]
+
+    def test_multiple_attributes(self, ddb_client, test_df_table):
+        """Test with multiple items and specified attributes returns only the specified
+        attributes."""
+        items = get_items(
+            keys=[{"id": 0}, {"id": 2}],
+            table=test_df_table,
+            attributes=["id", "C", "F"],
+        )
+        assert items == [
+            {"C": "0 days 19:32:01", "F": 128, "id": 0},
+            {"C": "2 days 23:06:40", "F": None, "id": 2},
         ]
 
     def test_single_existing(self, ddb_client, test_df_table):
@@ -275,6 +298,19 @@ class Test_get_all_items:
         assert len(items) == 100
         size = sum(sys.getsizeof(i["id"]) + sys.getsizeof(i["A"]) for i in items)
         assert size / 1024 / 1024 > 1
+
+    def test_attributes_returns_selected_attributes(self, ddb_client, test_df_table):
+        """Test that the attributes parameter returns the specified parameters."""
+        items = get_all_items(table=test_df_table, attributes=["id", "A", "E"])
+
+        assert [set(item.keys()) == set(["id", "A", "E"]) for item in items]
+
+    def test_attributes_large_objects(self, ddb_client, large_objects_table):
+        """Test that the attributes parameter works when multiple calls to Table.scan
+        are required."""
+        items = get_all_items(table=large_objects_table, attributes=["A"])
+
+        assert [item.keys() == ["A"] for item in items]
 
 
 class Test_put_items:
