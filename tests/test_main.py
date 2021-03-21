@@ -132,6 +132,39 @@ class Test_get_df:
 
         assert df.empty
 
+    def test_attributes_returns_specified_columns(self, test_df_table):
+        """Test that only columns corresponding to the specified attributes are
+        returned."""
+        df = get_df(
+            table=test_df_table,
+            attributes=["id", "A", "E"],
+            keys=[{"id": 0}, {"id": 1}],
+        )
+
+        assert df.equals(
+            pd.DataFrame(
+                [
+                    {"A": "abc", "E": "2000-01-01 00:00:00+00:00", "id": 0},
+                    {"A": None, "E": "2000-12-31 23:59:59+00:00", "id": 1},
+                ]
+            )
+        )
+
+    def test_attributes_and_keys(self, test_df_table):
+        """Test that only columns corresponding to the specified attributes are
+        returned along with keys."""
+        df = get_df(table=test_df_table, attributes=["id", "A", "E"])
+
+        assert df.equals(
+            pd.DataFrame(
+                [
+                    {"A": "abc", "E": "2000-01-01 00:00:00+00:00", "id": 0},
+                    {"A": None, "E": "2000-12-31 23:59:59+00:00", "id": 1},
+                    {"A": None, "E": None, "id": 2},
+                ]
+            )
+        )
+
     def test_dtype(self, test_df_table):
         """Test that the dtype parameter controls the returned data types."""
         df = get_df(

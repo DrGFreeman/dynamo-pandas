@@ -5,7 +5,7 @@ from .transactions import get_items
 from .transactions import put_items
 
 
-def get_df(*, table, keys=None, dtype=None):
+def get_df(*, table, keys=None, attributes=None, dtype=None):
     """Get items from a table into a dataframe.
 
     Parameters
@@ -16,9 +16,15 @@ def get_df(*, table, keys=None, dtype=None):
     keys : list[dict]
         List of keys to get where each key is represented by a dictionary.
 
-    dtype : dict
-        Data type for data or columns. E.g. {‘a’: np.float64, ‘b’: np.int32, ‘c’:
-        ‘Int64’} Use str or object.
+    attributes : list[str]
+        Names of the item attributes to return as dataframe columns. If None (default),
+        all attributes are returned.
+
+    dtype : data type or dict of column names -> data type
+        Use a numpy.dtype or Python type to cast entire pandas object to the same type.
+        Alternatively, use {col: dtype, …}, where col is a column label and dtype is a
+        numpy.dtype or Python type to cast one or more of the DataFrame’s columns to
+        column-specific types.
 
     Returns
     -------
@@ -105,16 +111,27 @@ def get_df(*, table, keys=None, dtype=None):
 
     >>> df = get_df(table="players")
     >>> print(df)
-           bonus_points     player_id            last_play  rating        play_time
-        0           4.0  player_three  2021-01-21 10:22:43     2.5  1 days 14:01:19
-        1           NaN   player_four  2021-01-22 13:51:12     4.8  0 days 03:45:49
-        2           3.0    player_one  2021-01-18 22:47:23     4.3  2 days 17:41:55
-        3           1.0    player_two  2021-01-19 19:07:54     3.8  0 days 22:07:34
+        bonus_points     player_id            last_play  rating        play_time
+    0           4.0  player_three  2021-01-21 10:22:43     2.5  1 days 14:01:19
+    1           NaN   player_four  2021-01-22 13:51:12     4.8  0 days 03:45:49
+    2           3.0    player_one  2021-01-18 22:47:23     4.3  2 days 17:41:55
+    3           1.0    player_two  2021-01-19 19:07:54     3.8  0 days 22:07:34
+
+    Specifying item attributes via the ``attributes`` parameter returns only the
+    columns corresponding to the specified attributes:
+
+    >>> df = get_df(table="players", attributes=["player_id", "rating"])
+    >>> print(df)
+          player_id  rating
+    0  player_three     2.5
+    1   player_four     4.8
+    2    player_one     4.3
+    3    player_two     3.8
     """  # noqa: E501
     if keys is not None:
-        items = get_items(keys=keys, table=table)
+        items = get_items(keys=keys, table=table, attributes=attributes)
     else:
-        items = get_all_items(table=table)
+        items = get_all_items(table=table, attributes=attributes)
 
     return _to_df(items=items, dtype=dtype)
 
