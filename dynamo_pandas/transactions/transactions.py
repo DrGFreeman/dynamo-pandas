@@ -135,6 +135,7 @@ def get_items(*, keys, table, attributes=None):
         items = response["Responses"][table]
 
         while response["UnprocessedKeys"] != {}:
+            keys = response["UnprocessedKeys"][table]["Keys"]
             response = resource.batch_get_item(RequestItems=_request(keys))
             items.extend(response["Responses"][table])
 
@@ -253,6 +254,23 @@ def put_item(*, item, table, return_response=False):
         return response
 
 
+def _put_items(items, table):
+    """Adapter function to format the items, call the client batch_write_item function
+    and return the unprocessed items (if any) in the format they were provided."""
+    client = boto3.client("dynamodb")
+
+    response = client.batch_write_item(
+        RequestItems={table: [{"PutRequest": {"Item": item}} for item in items]}
+    )
+
+    if response["UnprocessedItems"] != {}:
+        return [
+            item["PutRequest"]["Item"] for item in response["UnprocessedItems"][table]
+        ]
+    else:
+        return []
+
+
 def put_items(*, items, table):
     """Add or update multiple items in a table. If the item(s) do not exist in the
     table they are created, otherwise the existing items are replaced with the new ones.
@@ -286,17 +304,6 @@ def put_items(*, items, table):
     if not isinstance(items, list):
         raise TypeError("items must be a list of non-empty dictionaries")
 
-    def _put_items(items, table=table):
-        response = client.batch_write_item(
-            RequestItems={table: [{"PutRequest": {"Item": item}} for item in items]}
-        )
-        if response["UnprocessedItems"] != {}:
-            return response["UprocessedItems"][table]
-        else:
-            return []
-
-    client = boto3.client("dynamodb")
-
     items_to_process = [i["M"] for i in ts.serialize(items)["L"]]
 
     batch_size = 25
@@ -304,10 +311,10 @@ def put_items(*, items, table):
         batch_items = items_to_process[:batch_size]
         items_to_process = items_to_process[batch_size:]
 
-        unprocessed_items = _put_items(batch_items)
+        unprocessed_items = _put_items(batch_items, table)
 
         if len(unprocessed_items) > batch_size // 2:
-            batch_size = batch_size // 2 + 1
+            batch_size = max(batch_size // 2, 1)
 
         # Put unprocessed items at back of queue.
         items_to_process.extend(unprocessed_items)
