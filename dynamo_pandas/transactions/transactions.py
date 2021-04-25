@@ -135,6 +135,7 @@ def get_items(*, keys, table, attributes=None):
         items = response["Responses"][table]
 
         while response["UnprocessedKeys"] != {}:
+            keys = response["UnprocessedKeys"][table]["Keys"]
             response = resource.batch_get_item(RequestItems=_request(keys))
             items.extend(response["Responses"][table])
 
