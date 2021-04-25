@@ -1,6 +1,7 @@
 import base64
 import os
 import sys
+from unittest import mock
 
 import pandas as pd
 import pytest
@@ -357,3 +358,27 @@ class Test_put_items:
             TypeError, match="items must be a list of non-empty dictionaries"
         ):
             put_items(items=large_table_items[0], table=empty_table)
+
+    def test_unprocessed_items(self, ddb_client, empty_table):
+        """Test the handling of unprocessed items returned by the
+        boto3.client().batch_write_item function."""
+
+        def batch_write_item(RequestItems):
+            """Fake batch_write_item function returning half of the items received."""
+            items = RequestItems[empty_table]
+            response = {
+                "UnprocessedItems": {
+                    empty_table: [
+                        {"PutRequest": {"Item": item}}
+                        for item in items[max(len(items) // 2, 12) :]  # noqa: E203
+                    ]
+                }
+            }
+            return response
+
+        with mock.patch("dynamo_pandas.transactions.transactions.boto3") as boto3:
+            boto3.client().batch_write_item.side_effect = batch_write_item
+
+            items = large_table_items
+
+            put_items(items=items, table=empty_table)
