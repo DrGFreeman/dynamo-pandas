@@ -88,12 +88,12 @@ The ``dtype`` parameter of the ``get_df`` function allows specifying the desired
 >>> df = get_df(
 ...     table="players",
 ...     keys=keys(player_id=["player_two", "player_four"]),
-...         dtype={
-...             "bonus_points": "Int8",
-...             "last_play": "datetime64[ns, UTC]",
-...             # "play_time": "timedelta64[ns]"  # See note below.
-...         }
-...     )
+...     dtype={
+...         "bonus_points": "Int8",
+...         "last_play": "datetime64[ns, UTC]",
+...         # "play_time": "timedelta64[ns]"  # See note below.
+...     }
+... )
 >>> df.info()
 <class 'pandas.core.frame.DataFrame'>
 RangeIndex: 2 entries, 0 to 1
