@@ -40,7 +40,7 @@ python -m pip install dynamo-pandas[boto3]
 Consider the pandas DataFrame below.
 
 
-```
+```python
 >>> print(players_df)
 
       player_id           last_play       play_time  rating  bonus_points
@@ -53,7 +53,7 @@ Consider the pandas DataFrame below.
 The columns of the dataframe use different data types, some of which are not natively supported by DynamoDB, like numpy.datetime64, timedelta64 and pandas' nullable integers.
 
 
-```
+```python
 >>> players_df.info()
 
 <class 'pandas.core.frame.DataFrame'>
@@ -72,20 +72,20 @@ memory usage: 264.0+ bytes
 
 Storing the rows of this dataframe to DynamoDB requires multiple data type conversions.
 
-```
+```python
 >>> from dynamo_pandas import put_df, get_df, keys
 ```
 
 The `put_df` function adds or updates the rows of a dataframe into the specified table, taking care of the required type conversions (the table must be already created and the primary key column(s) be present in the dataframe).
 
-```
+```python
 >>> put_df(players_df, table="players")
 ```
 
 The `get_df` function retrieves the items matching the speficied key(s) from the table into a dataframe.
 
 
-```
+```python
 >>> df = get_df(table="players", keys=[{"player_id": "player_three"}, {"player_id": "player_one"}])
 >>> print(df)
 
@@ -97,7 +97,7 @@ The `get_df` function retrieves the items matching the speficied key(s) from the
 In the case where only a partition key is used, the `keys` function simplifies the generation of the keys list.
 
 
-```
+```python
 >>> df = get_df(table="players", keys=keys(player_id=["player_two", "player_four"]))
 >>> print(df)
 
@@ -109,7 +109,7 @@ In the case where only a partition key is used, the `keys` function simplifies t
 The data types returned by the `get_df` function are basic types and no automatic type conversion is attempted.
 
 
-```
+```python
 >>> df.info()
 
 <class 'pandas.core.frame.DataFrame'>
@@ -128,7 +128,7 @@ memory usage: 208.0+ bytes
 
 The `dtype` parameter of the `get_df` function allows specifying the desired data types.
 
-```
+```python
 >>> df = get_df(
 ...     table="players",
 ...     keys=keys(player_id=["player_two", "player_four"]),
@@ -143,7 +143,7 @@ The `dtype` parameter of the `get_df` function allows specifying the desired dat
 **Note**: Due to a known bug in pandas, timedelta strings cannot currently be converted back to Timedelta type via this parameter (ref. https://github.com/pandas-dev/pandas/issues/38509). Use the pandas.to_timedelta function instead:
 
 
-```
+```python
 >>> df.play_time = pd.to_timedelta(df.play_time)
 >>> df.info()
 
@@ -164,7 +164,7 @@ memory usage: 196.0+ bytes
 Omitting the `keys` parameter performs a scan of the table and returns all the items.
 
 
-```
+```python
 >>> df = get_df(table="players")
 >>> print(df)
 
