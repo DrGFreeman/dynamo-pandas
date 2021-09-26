@@ -22,7 +22,7 @@ def _batches(items, batch_size):
         start += batch_size
 
 
-def get_item(*, key, table, attributes=None):
+def get_item(*, key, table, attributes=None, boto3_kwargs={}):
     """Get a single item from a table.
 
     Parameters
@@ -36,6 +36,11 @@ def get_item(*, key, table, attributes=None):
     attributes : list[str]
         Names of the item attributes to return. If None (default), all attributes are
         returned.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.resource('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.resource>`_
+        for details).
 
     Returns
     -------
@@ -63,8 +68,8 @@ def get_item(*, key, table, attributes=None):
     ... )
     >>> print(item)
     {'rating': 3.8, 'play_time': '0 days 22:07:34'}
-    """
-    table = boto3.resource("dynamodb").Table(table)
+    """  # noqa: E501
+    table = boto3.resource("dynamodb", **boto3_kwargs).Table(table)
 
     kwargs = {}
     if attributes is not None:
@@ -75,7 +80,7 @@ def get_item(*, key, table, attributes=None):
     return _deserialize(item)
 
 
-def get_items(*, keys, table, attributes=None):
+def get_items(*, keys, table, attributes=None, boto3_kwargs={}):
     """Get multiple items from a table.
 
     Parameters
@@ -89,6 +94,11 @@ def get_items(*, keys, table, attributes=None):
     attributes : list[str]
         Names of the item attributes to return. If None (default), all attributes are
         returned.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.resource('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.resource>`_
+        for details).
 
     Returns
     -------
@@ -141,7 +151,7 @@ def get_items(*, keys, table, attributes=None):
 
         return items
 
-    resource = boto3.resource("dynamodb")
+    resource = boto3.resource("dynamodb", **boto3_kwargs)
 
     key_batches = _batches(keys, batch_size=100)
 
@@ -152,7 +162,7 @@ def get_items(*, keys, table, attributes=None):
     return _deserialize(items)
 
 
-def get_all_items(*, table, attributes=None):
+def get_all_items(*, table, attributes=None, boto3_kwargs={}):
     """Get all the items in a table.
 
     This function performs a scan of the table.
@@ -165,6 +175,11 @@ def get_all_items(*, table, attributes=None):
     attributes : list[str]
         Names of the item attributes to return. If None (default), all attributes are
         returned.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.resource('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.resource>`_
+        for details).
 
     Returns
     -------
@@ -190,7 +205,7 @@ def get_all_items(*, table, attributes=None):
      {'player_id': 'player_one', 'play_time': '2 days 17:41:55'},
      {'player_id': 'player_two', 'play_time': '0 days 22:07:34'}]
     """  # noqa: E501
-    table = boto3.resource("dynamodb").Table(table)
+    table = boto3.resource("dynamodb", **boto3_kwargs).Table(table)
 
     kwargs = {}
     if attributes is not None:
@@ -207,7 +222,7 @@ def get_all_items(*, table, attributes=None):
     return _deserialize(items)
 
 
-def put_item(*, item, table, return_response=False):
+def put_item(*, item, table, return_response=False, boto3_kwargs={}):
     """Add or update an item in a table. If the item does not exist in the table it is
     created, otherwise the existing item is replaced with the new one.
 
@@ -224,6 +239,11 @@ def put_item(*, item, table, return_response=False):
 
     return_response : bool
         If True, the response from the boto3 API call will be returned.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.client('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.client>`_
+        for details).
 
     Returns
     -------
@@ -242,11 +262,11 @@ def put_item(*, item, table, return_response=False):
     >>> response = put_item(item=item, table="players", return_response=True)
     >>> print(response["ResponseMetadata"]["HTTPStatusCode"])
     200
-    """
+    """  # noqa: E501
     if not isinstance(item, dict):
         raise TypeError("item must be a non-empty dictionary")
 
-    client = boto3.client("dynamodb")
+    client = boto3.client("dynamodb", **boto3_kwargs)
 
     response = client.put_item(TableName=table, Item=ts.serialize(item)["M"])
 
@@ -254,10 +274,10 @@ def put_item(*, item, table, return_response=False):
         return response
 
 
-def _put_items(items, table):
+def _put_items(items, table, boto3_kwargs):
     """Adapter function to format the items, call the client batch_write_item function
     and return the unprocessed items (if any) in the format they were provided."""
-    client = boto3.client("dynamodb")
+    client = boto3.client("dynamodb", **boto3_kwargs)
 
     response = client.batch_write_item(
         RequestItems={table: [{"PutRequest": {"Item": item}} for item in items]}
@@ -271,7 +291,7 @@ def _put_items(items, table):
         return []
 
 
-def put_items(*, items, table):
+def put_items(*, items, table, boto3_kwargs={}):
     """Add or update multiple items in a table. If the item(s) do not exist in the
     table they are created, otherwise the existing items are replaced with the new ones.
 
@@ -284,6 +304,11 @@ def put_items(*, items, table):
 
     table : str
         Name of the DynamoDB table.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.client('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.client>`_
+        for details).
 
     Examples
     --------
@@ -300,7 +325,7 @@ def put_items(*, items, table):
       'player_id': 'player_four',
       'rating': 4.8}]
     >>> put_items(items=items, table="players)
-    """
+    """  # noqa: E501
     if not isinstance(items, list):
         raise TypeError("items must be a list of non-empty dictionaries")
 
@@ -311,7 +336,7 @@ def put_items(*, items, table):
         batch_items = items_to_process[:batch_size]
         items_to_process = items_to_process[batch_size:]
 
-        unprocessed_items = _put_items(batch_items, table)
+        unprocessed_items = _put_items(batch_items, table, boto3_kwargs)
 
         if len(unprocessed_items) > batch_size // 2:
             batch_size = max(batch_size // 2, 1)
