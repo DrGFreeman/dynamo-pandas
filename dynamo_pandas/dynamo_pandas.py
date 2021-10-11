@@ -5,7 +5,7 @@ from .transactions import get_items
 from .transactions import put_items
 
 
-def get_df(*, table, keys=None, attributes=None, dtype=None):
+def get_df(*, table, keys=None, attributes=None, dtype=None, boto3_kwargs={}):
     """Get items from a table into a dataframe.
 
     Parameters
@@ -25,6 +25,11 @@ def get_df(*, table, keys=None, attributes=None, dtype=None):
         Alternatively, use {col: dtype, …}, where col is a column label and dtype is a
         numpy.dtype or Python type to cast one or more of the DataFrame’s columns to
         column-specific types.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.resource('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.resource>`_
+        for details).
 
     Returns
     -------
@@ -129,9 +134,13 @@ def get_df(*, table, keys=None, attributes=None, dtype=None):
     3    player_two     3.8
     """  # noqa: E501
     if keys is not None:
-        items = get_items(keys=keys, table=table, attributes=attributes)
+        items = get_items(
+            keys=keys, table=table, attributes=attributes, boto3_kwargs=boto3_kwargs
+        )
     else:
-        items = get_all_items(table=table, attributes=attributes)
+        items = get_all_items(
+            table=table, attributes=attributes, boto3_kwargs=boto3_kwargs
+        )
 
     return _to_df(items=items, dtype=dtype)
 
@@ -169,7 +178,7 @@ def keys(**kwargs):
     return [{k: v} for v in kwargs[k]]
 
 
-def put_df(df, *, table):
+def put_df(df, *, table, boto3_kwargs={}):
     """Put rows of a dataframe as items into a table. If the item(s) do not exist in the
     table they are created, otherwise the existing items are replaced with the new ones.
 
@@ -181,6 +190,11 @@ def put_df(df, *, table):
 
     table : str
         Name of the DynamoDB table.
+
+    boto3_kwargs : dict
+        Keyword arguments to pass to the underlying ``boto3.client('dynamodb')``
+        function call (see `boto3 docs <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.client>`_
+        for details).
 
     Examples
     --------
@@ -197,8 +211,8 @@ def put_df(df, *, table):
     ``players``:
 
     >>> put_df(players_df, table="players")
-    """
-    put_items(items=_to_items(df), table=table)
+    """  # noqa: E501
+    put_items(items=_to_items(df), table=table, boto3_kwargs=boto3_kwargs)
 
 
 def _to_df(items, *, dtype=None):

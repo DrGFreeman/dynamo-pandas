@@ -82,6 +82,26 @@ class Test_put_item:
         resp = ddb_client.get_item(TableName=empty_table, Key=dict(id=dict(N="0")))
         assert resp["Item"] == {"id": {"N": "0"}, "A": {"S": "abc"}}
 
+    def test_boto3_kwargs_are_passed(self, ddb_client, empty_table):
+        """Test that the boto3_kwargs are passed to the boto3.client() function call."""
+        # empty_table is defined in us-east-1. By setting the region_name to
+        # ca-central-1, we expect a ResourceNotFoundException.
+        with pytest.raises(ddb_client.exceptions.ResourceNotFoundException):
+            put_item(
+                item=dict(id=0, A=0, B=1),
+                table=empty_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+        # With the correct region we expect to put the items.
+        resp = put_item(
+            item=dict(id=0, A=1),
+            table=empty_table,
+            return_response=True,
+            boto3_kwargs=dict(region_name="us-east-1"),
+        )
+        assert resp["ResponseMetadata"]["HTTPStatusCode"] == 200
+
 
 class Test_get_item:
     """Test the get_item function."""
@@ -144,6 +164,26 @@ class Test_get_item:
         item = get_item(key=dict(id=0), table=test_df_table, attributes=["A", "F"])
 
         assert item == {"A": "abc", "F": 128}
+
+    def test_boto3_kwargs_are_passed(self, ddb_client, test_df_table):
+        """Test that the boto3_kwargs are passed to the boto3.resource() function
+        call."""
+        # test_df_table is defined in us-east-1. By setting the region_name to
+        # ca-central-1, we expect a ResourceNotFoundException.
+        with pytest.raises(ddb_client.exceptions.ResourceNotFoundException):
+            get_item(
+                key=dict(id=0),
+                table=test_df_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+        # With the correct region we expect to get the item.
+        item = get_item(
+            key=dict(id=0),
+            table=test_df_table,
+            boto3_kwargs=dict(region_name="us-east-1"),
+        )
+        assert item
 
 
 class Test_get_items:
@@ -279,6 +319,30 @@ class Test_get_items:
 
         assert items == large_table_items
 
+    def test_boto3_kwargs_are_passed(self, ddb_client, test_df_table):
+        """Test that the boto3_kwargs are passed to the boto3.resource() function
+        call."""
+        # test_df_table is defined in us-east-1. By setting the region_name to
+        # ca-central-1, we expect a ResourceNotFoundException.
+        # Moto raises a ValueError instead so expect it as well
+        # (see https://github.com/spulec/moto/issues/4344)
+        with pytest.raises(
+            (ddb_client.exceptions.ResourceNotFoundException, ValueError)
+        ):
+            get_items(
+                keys=[{"id": 0}],
+                table=test_df_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+        # With the correct region we expect to get the items.
+        items = get_items(
+            keys=[{"id": 0}],
+            table=test_df_table,
+            boto3_kwargs=dict(region_name="us-east-1"),
+        )
+        assert items
+
 
 class Test_get_all_items:
     """Test the get_all_items function."""
@@ -342,6 +406,24 @@ class Test_get_all_items:
         items = get_all_items(table=large_objects_table, attributes=["A"])
 
         assert [item.keys() == ["A"] for item in items]
+
+    def test_boto3_kwargs_are_passed(self, ddb_client, test_df_table):
+        """Test that the boto3_kwargs are passed to the boto3.resource() function
+        call."""
+        # test_df_table is defined in us-east-1. By setting the region_name to
+        # ca-central-1, we expect a ResourceNotFoundException.
+        with pytest.raises(
+            (ddb_client.exceptions.ResourceNotFoundException, ValueError)
+        ):
+            get_all_items(
+                table=test_df_table, boto3_kwargs=dict(region_name="ca-central-1")
+            )
+
+        # With the correct region we expect to get the items.
+        items = get_all_items(
+            table=test_df_table, boto3_kwargs=dict(region_name="us-east-1"),
+        )
+        assert items
 
 
 class Test_put_items:
@@ -412,3 +494,21 @@ class Test_put_items:
             items = large_table_items
 
             put_items(items=items, table=empty_table)
+
+    def test_boto3_kwargs_are_passed(self, ddb_client, empty_table):
+        """Test that the boto3_kwargs are passed to the boto3.client() function call."""
+        items = test_df.to_dict("records")
+
+        # Moto does not raise the expected ResourceNotFoundError (see
+        # https://github.com/spulec/moto/issues/4347)
+        # We mock the boto3.client call instead and verify the boto3_kwargs are passed
+        with mock.patch(
+            "dynamo_pandas.transactions.transactions.boto3.client"
+        ) as client:
+            put_items(
+                items=items,
+                table=empty_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+            assert client.call_args[1] == dict(region_name="ca-central-1")

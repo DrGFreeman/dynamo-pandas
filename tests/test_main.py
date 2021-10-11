@@ -1,4 +1,5 @@
 import re
+from unittest import mock
 
 import pandas as pd
 import pytest
@@ -187,6 +188,29 @@ class Test_get_df:
             "id": "int64",
         }
 
+    @pytest.mark.parametrize("keys", (None, [{"id": 0}]))
+    def test_boto3_kwargs_are_passed(self, ddb_client, test_df_table, keys):
+        """Test that the boto3_kwargs are passed to the boto3.resource() function
+        call."""
+        # test_df_table is defined in us-east-1. By setting the region_name to
+        # ca-central-1, we expect a ResourceNotFoundException.
+        # Moto raises a ValueError instead so expect it as well
+        # (see https://github.com/spulec/moto/issues/4344)
+        with pytest.raises(
+            (ddb_client.exceptions.ResourceNotFoundException, ValueError)
+        ):
+            get_df(
+                keys=keys,
+                table=test_df_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+        # With the correct region we expect to get the items.
+        df = get_df(
+            keys=keys, table=test_df_table, boto3_kwargs=dict(region_name="us-east-1"),
+        )
+        assert not df.empty
+
 
 class Test_put_df:
     """Test the put_df function."""
@@ -227,6 +251,22 @@ class Test_put_df:
                 ]
             )
         )
+
+    def test_boto3_kwargs_are_passed(self, ddb_client, empty_table):
+        """Test that the boto3_kwargs are passed to the boto3.client() function call."""
+        # Moto does not raise the expected ResourceNotFoundError (see
+        # https://github.com/spulec/moto/issues/4347)
+        # We mock the boto3.client call instead and verify the boto3_kwargs are passed
+        with mock.patch(
+            "dynamo_pandas.transactions.transactions.boto3.client"
+        ) as client:
+            put_df(
+                test_df,
+                table=empty_table,
+                boto3_kwargs=dict(region_name="ca-central-1"),
+            )
+
+            assert client.call_args[1] == dict(region_name="ca-central-1")
 
 
 class Test__to_df:
