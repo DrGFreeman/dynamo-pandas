@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule: [main]
+    - cron: '58 21 * * 5'
 
 jobs:
   unit-tests:
