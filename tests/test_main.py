@@ -88,8 +88,8 @@ class Test_get_df:
         )
 
     def test_keys(self, test_df_table):
-        """"Test with keys specified. Also test that keys not in the table are ignored.
-        """
+        """Test with keys specified. Also test that keys not in the table are
+        ignored."""
         df = get_df(table=test_df_table, keys=[{"id": 0}, {"id": 2}, {"id": 3}])
 
         assert {c: t.name for c, t in zip(df.columns, df.dtypes)} == {
@@ -207,7 +207,9 @@ class Test_get_df:
 
         # With the correct region we expect to get the items.
         df = get_df(
-            keys=keys, table=test_df_table, boto3_kwargs=dict(region_name="us-east-1"),
+            keys=keys,
+            table=test_df_table,
+            boto3_kwargs=dict(region_name="us-east-1"),
         )
         assert not df.empty
 
