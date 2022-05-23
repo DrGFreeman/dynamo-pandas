@@ -73,8 +73,8 @@ class Test_put_item:
         assert resp["Item"] == expected
 
     def test_existing_key_overwrites(self, ddb_client, empty_table):
-        """Test that putting an item for which the key already exists overwrites the item.
-        """
+        """Test that putting an item for which the key already exists overwrites the
+        item."""
         put_item(item=dict(id=0, A=0, B=1), table=empty_table)
 
         put_item(item=dict(id=0, A="abc"), table=empty_table)
@@ -421,7 +421,8 @@ class Test_get_all_items:
 
         # With the correct region we expect to get the items.
         items = get_all_items(
-            table=test_df_table, boto3_kwargs=dict(region_name="us-east-1"),
+            table=test_df_table,
+            boto3_kwargs=dict(region_name="us-east-1"),
         )
         assert items
 

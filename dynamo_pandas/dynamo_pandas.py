@@ -216,8 +216,8 @@ def put_df(df, *, table, boto3_kwargs={}):
 
 
 def _to_df(items, *, dtype=None):
-    """Convert an item dictionary or list of item dictionaries into a pandas DataFrame.
-    """
+    """Convert an item dictionary or list of item dictionaries into a pandas
+    DataFrame."""
     if isinstance(items, dict):
         items = [items]
 
