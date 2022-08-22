@@ -2,6 +2,20 @@
 
 * ...
 
+## Version 1.3.0
+
+### New Features
+
+* Allow passing boto3 resource or client parameters to functions (issue #52, PR #57).
+
+### Fixes
+
+* Fix indentation in docs code examples (issues #50, #55, PRs #53, #56).
+
+### Other changes
+
+* Add testing under Python 3.10 (issue #58, PR #59).
+
 ## Version 1.2.1
 
 ### Fixes
