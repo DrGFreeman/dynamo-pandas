@@ -1,5 +1,4 @@
-[![unit-tests-linux](https://github.com/drgfreeman/dynamo-pandas/actions/workflows/linux-checks.yml/badge.svg)](https://github.com/DrGFreeman/dynamo-pandas/actions/workflows/linux-checks.yml)
-[![unit-tests-windows](https://github.com/drgfreeman/dynamo-pandas/actions/workflows/windows-checks.yml/badge.svg)](https://github.com/DrGFreeman/dynamo-pandas/actions/workflows/windows-checks.yml)
+[![unit-tests-linux](https://github.com/drgfreeman/dynamo-pandas/actions/workflows/checks.yml/badge.svg)](https://github.com/DrGFreeman/dynamo-pandas/actions/workflows/checks.yml)
 [![Documentation Status](https://readthedocs.org/projects/dynamo-pandas/badge/?version=latest)](https://dynamo-pandas.readthedocs.io/en/latest/?badge=latest)
 
 # dynamo-pandas
