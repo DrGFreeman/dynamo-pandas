@@ -2,7 +2,7 @@ import base64
 import os
 
 import boto3
-from moto import mock_dynamodb
+from moto import mock_aws
 import pytest
 from test_data import large_table_items
 from test_data import test_df
@@ -23,7 +23,7 @@ def aws_credentials():
 @pytest.fixture()
 def ddb_client(aws_credentials):
     """Fixture to mock the dynamodb client using moto."""
-    with mock_dynamodb():
+    with mock_aws():
         yield boto3.client("dynamodb")
 
 

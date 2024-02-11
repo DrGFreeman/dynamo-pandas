@@ -1,4 +1,4 @@
-moto
+moto[dynamodb]>=5,<6
 pytest
 pytest-cov
 pytest-randomly
