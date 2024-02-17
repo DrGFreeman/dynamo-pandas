@@ -31,7 +31,7 @@ The columns of the dataframe use different data types, some of which are not nat
 RangeIndex: 4 entries, 0 to 3
 Data columns (total 5 columns):
     #   Column        Non-Null Count  Dtype          
----  ------        --------------  -----          
+   ---  ------        --------------  -----          
     0   player_id     4 non-null      object         
     1   last_play     4 non-null      datetime64[ns] 
     2   play_time     4 non-null      timedelta64[ns]
@@ -91,7 +91,7 @@ The ``dtype`` parameter of the ``get_df`` function allows specifying the desired
 ...     dtype={
 ...         "bonus_points": "Int8",
 ...         "last_play": "datetime64[ns, UTC]",
-...         # "play_time": "timedelta64[ns]"  # See note below.
+...         "play_time": "timedelta64[ns]"  # See note below.
 ...     }
 ... )
 >>> df.info()
@@ -104,11 +104,11 @@ Data columns (total 5 columns):
     1   player_id     2 non-null      object             
     2   last_play     2 non-null      datetime64[ns, UTC]
     3   rating        2 non-null      float64            
-    4   play_time     2 non-null      object
-dtypes: Int8(1), datetime64[ns, UTC](1), float64(1), object(2)
+    4   play_time     2 non-null      timedelta64[ns]
+dtypes: Int8(1), datetime64[ns, UTC](1), float64(1), object(1), timedelta64[ns](1)
 memory usage: 196.0+ bytes
 
-.. note:: Due to a `known bug in pandas <https://github.com/pandas-dev/pandas/issues/38509>`_, timedelta strings cannot currently be converted back to timedelta64 type via the ``dtype`` parameter. Use the ``pandas.to_timedelta`` function instead:
+.. note:: Due to a `known bug in pandas versions < 1.5 <https://github.com/pandas-dev/pandas/issues/38509>`_, timedelta strings cannot be converted back to timedelta64 type via the ``dtype`` parameter. If using pandas < 1.5, use the ``pandas.to_timedelta`` function instead:
 
     >>> df.play_time = pd.to_timedelta(df.play_time)
     >>> df.info()

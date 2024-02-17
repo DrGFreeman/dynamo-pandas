@@ -1,6 +1,7 @@
 import re
 from unittest import mock
 
+from packaging.version import parse as parse_version
 import pandas as pd
 import pytest
 from test_data import test_df
@@ -166,12 +167,16 @@ class Test_get_df:
             )
         )
 
+    @pytest.mark.skipif(
+        parse_version(pd.__version__) < parse_version("1.5"),
+        reason="https://github.com/DrGFreeman/dynamo-pandas/issues/24",
+    )
     def test_dtype(self, test_df_table):
         """Test that the dtype parameter controls the returned data types."""
         df = get_df(
             table=test_df_table,
             dtype={
-                # "C": "timedelta64[ns]",  # Ref. #24
+                "C": "timedelta64[ns]",
                 "D": "datetime64[ns]",
                 "E": "datetime64[ns, UTC]",
                 "F": "Int32",
@@ -180,7 +185,7 @@ class Test_get_df:
         assert {c: t.name for c, t in zip(df.columns, df.dtypes)} == {
             "A": "object",
             "B": "int64",
-            "C": "object",
+            "C": "timedelta64[ns]",
             "D": "datetime64[ns]",
             "E": "datetime64[ns, UTC]",
             "F": "Int32",
@@ -194,11 +199,7 @@ class Test_get_df:
         call."""
         # test_df_table is defined in us-east-1. By setting the region_name to
         # ca-central-1, we expect a ResourceNotFoundException.
-        # Moto raises a ValueError instead so expect it as well
-        # (see https://github.com/spulec/moto/issues/4344)
-        with pytest.raises(
-            (ddb_client.exceptions.ResourceNotFoundException, ValueError)
-        ):
+        with pytest.raises(ddb_client.exceptions.ResourceNotFoundException):
             get_df(
                 keys=keys,
                 table=test_df_table,
@@ -306,12 +307,16 @@ class Test__to_df:
             "int64",
         ]
 
+    @pytest.mark.skipif(
+        parse_version(pd.__version__) < parse_version("1.5"),
+        reason="https://github.com/DrGFreeman/dynamo-pandas/issues/24",
+    )
     def test_with_dtype(self):
         """Test with dtype parameter specified."""
         df = _to_df(
             test_items,
             dtype=dict(
-                # C="timedelta64[ns]",  # Ref. #24
+                C="timedelta64[ns]",
                 D="datetime64[ns]",
                 E="datetime64[ns, UTC]",
                 F="Int32",
@@ -321,7 +326,7 @@ class Test__to_df:
         assert [t.name for t in df.dtypes] == [
             "object",
             "int64",
-            "object",
+            "timedelta64[ns]",
             "datetime64[ns]",
             "datetime64[ns, UTC]",
             "Int32",
