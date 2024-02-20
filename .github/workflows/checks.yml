@@ -1,7 +1,11 @@
 name: checks
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
   schedule:
     - cron: "40 22 * * 6"
 
@@ -26,11 +30,11 @@ jobs:
           - ubuntu-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup python for test ${{ matrix.py }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
       - name: Install tox
