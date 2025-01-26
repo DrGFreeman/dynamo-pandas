@@ -12,3 +12,9 @@ ignore-semiprivate = true
 exclude = [".vscode", "setup.py"]
 color = true
 verbose = 1
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",  # numpy 1.20 (python39-pandas12 env)
+    "ignore:datetime.datetime.utcnow:DeprecationWarning",  # botocore python >= 3.12
+]
