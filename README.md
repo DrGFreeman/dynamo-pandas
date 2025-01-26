@@ -16,7 +16,7 @@ The project's documentation is available at https://dynamo-pandas.readthedocs.io
 
 
 ## Requirements
-* `python>=3.8`
+* `python>=3.9`
 * `pandas>=1.2`
 * `boto3`
 
